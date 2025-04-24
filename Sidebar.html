@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body { font-family: Arial, sans-serif; padding: 10px; }
+      h3 { margin-bottom: 8px; }
+      label { font-weight: bold; display: block; margin-top: 12px; }
+      input, textarea, button { width: 100%; box-sizing: border-box; margin-top: 4px; }
+      button { margin-top: 12px; }
+      hr { margin: 20px 0; }
+    </style>
+    <script>
+      /** Single-ingredient add */
+      function submitRecipe() {
+        const form = document.getElementById('recipeForm');
+        const data = {
+          name:         form.name.value.trim(),
+          ingredient:   form.ingredient.value.trim(),
+          quantity:     form.quantity.value.trim(),
+          unit:         form.unit.value.trim(),
+          instructions: form.instructions.value.trim()
+        };
+        google.script.run
+          .withSuccessHandler(msg => {
+            alert(msg);
+            form.reset();
+          })
+          .withFailureHandler(err => {
+            alert('Error: ' + err.message);
+            console.error(err);
+          })
+          .addRecipe(data);
+      }
+
+      /** Bulk-import handler */
+      function importFromWeb() {
+        const ta = document.getElementById('bulkRecipe');
+        // getElementById always returns an element or null :contentReference[oaicite:3]{index=3}
+        if (!ta) {
+          alert('Internal error: textarea not found.');
+          return;
+        }
+        const raw = ta.value || '';
+        if (!raw.trim()) {
+          alert('Please paste the full recipe text before importing.');
+          return;
+        }
+        google.script.run
+          .withSuccessHandler(msg => {
+            alert(msg);
+            ta.value = '';
+          })
+          .withFailureHandler(err => {
+            alert('Error: ' + err.message);
+            console.error(err);
+          })
+          .parseAndAddRecipe(raw);
+      }
+    </script>
+  </head>
+  <body>
+    <h3>Quick Add Single Ingredient</h3>
+    <form id="recipeForm" onsubmit="submitRecipe(); return false;">
+      <label for="name">Recipe Name:</label>
+      <input id="name" name="name" type="text" required>
+      <label for="ingredient">Ingredient:</label>
+      <input id="ingredient" name="ingredient" type="text" required>
+      <label for="quantity">Quantity:</label>
+      <input id="quantity" name="quantity" type="text">
+      <label for="unit">Unit:</label>
+      <input id="unit" name="unit" type="text">
+      <label for="instructions">Instructions:</label>
+      <textarea id="instructions" name="instructions" rows="4"></textarea>
+      <button type="submit">Add Ingredient</button>
+    </form>
+
+    <hr>
+
+    <h3>Bulk Import Recipe</h3>
+    <p>Paste a full recipe (with clear “Ingredients:” and “Instructions:” headings) below:</p>
+    <textarea id="bulkRecipe" rows="10"
+      placeholder="e.g.&#10;My Pancakes&#10;Ingredients:&#10;1 cup flour&#10;2 eggs&#10;Instructions:&#10;Mix and cook...">
+    </textarea>
+    <button onclick="importFromWeb()">Import Entire Recipe</button>
+  </body>
+</html>
